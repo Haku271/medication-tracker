@@ -7,27 +7,57 @@
 
     <div class="p-4 space-y-4">
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <label class="block text-sm font-medium text-gray-700 mb-3">症状</label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="symptom in availableSymptoms"
-            :key="symptom"
-            @click="toggleSymptom(symptom)"
-            :class="['px-3 py-2 rounded-full text-sm border transition-all',
-              selectedSymptoms.includes(symptom)
-                ? 'bg-blue-100 border-blue-500 text-blue-700'
-                : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200']"
-          >
-            {{ symptom }}
-          </button>
+        <div class="flex items-center justify-between mb-3">
+          <label class="block text-sm font-medium text-gray-700">症状</label>
+          <span v-if="selectedSymptoms.length > 0" class="text-xs text-gray-400">已选 {{ selectedSymptoms.length }} 项</span>
+        </div>
+        <div class="space-y-3">
+          <div v-for="group in symptomGroups" :key="group.name">
+            <div class="text-xs text-gray-400 mb-1">{{ group.name }}</div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="symptom in group.symptoms"
+                :key="symptom.value"
+                @click="toggleSymptom(symptom.value)"
+                :class="['px-3 py-2 rounded-full text-sm border transition-all',
+                  selectedSymptoms.includes(symptom.value)
+                    ? 'bg-blue-100 border-blue-500 text-blue-700'
+                    : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200']"
+              >
+                {{ symptom.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div v-if="selectedSymptoms.length > 0" class="mt-3 pt-3 border-t border-gray-100">
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="symptom in selectedSymptoms"
+              :key="symptom"
+              @click="toggleSymptom(symptom)"
+              class="px-2.5 py-1 rounded-full text-sm bg-blue-100 border border-blue-500 text-blue-700 cursor-pointer"
+            >
+              {{ symptomLabel(symptom) }} ×
+            </span>
+          </div>
         </div>
       </div>
 
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <label class="block text-sm font-medium text-gray-700 mb-2">体温（可选）</label>
-        <div class="flex items-center gap-2">
-          <input v-model="temperature" type="number" step="0.1" min="35" max="42" placeholder="36.5" class="w-32 p-2 border border-gray-300 rounded-lg text-right">
-          <span class="text-gray-600">℃</span>
+        <label class="block text-sm font-medium text-gray-700 mb-3">体温（可选）</label>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in temperatureOptions"
+            :key="opt.value"
+            type="button"
+            @click="temperature = temperature === opt.value ? '' : opt.value"
+            :class="['px-3 py-2 rounded-full text-sm border transition-all',
+              temperature === opt.value
+                ? 'bg-blue-100 border-blue-500 text-blue-700'
+                : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200']"
+          >
+            {{ opt.label }}
+          </button>
         </div>
       </div>
 
@@ -54,9 +84,10 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
+import { SYMPTOM_GROUPS, symptomLabel } from '../data/symptoms.js';
 
 const router = useRouter();
-const availableSymptoms = ['恶寒', '发热', '头痛', '鼻塞', '流涕', '咽痛', '咳嗽', '乏力', '肌肉酸痛', '往来寒热'];
+const symptomGroups = SYMPTOM_GROUPS;
 
 const selectedSymptoms = ref([]);
 const temperature = ref('');

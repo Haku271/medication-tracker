@@ -5,6 +5,7 @@ import {
   CollapsibleRoot,
   CollapsibleTrigger,
 } from 'radix-vue'
+import { symptomLabels } from '../data/symptoms.js'
 
 const props = defineProps({
   entries: {
@@ -58,7 +59,7 @@ function formatTime(timestamp) {
                 v-if="entry.type === 'symptom'"
                 class="inline-flex items-center gap-1 text-sm text-gray-700"
               >
-                🩺 症状：{{ entry.symptoms?.join('、') }}
+                🩺 症状：{{ symptomLabels(entry.symptoms).join('、') }}
               </span>
               <span
                 v-else-if="entry.type === 'medication'"
@@ -103,7 +104,7 @@ function formatTime(timestamp) {
                     v-if="entry.type === 'symptom'"
                     class="inline-flex items-center gap-1 text-sm text-gray-700"
                   >
-                    🩺 症状：{{ entry.symptoms?.join('、') }}
+                    🩺 症状：{{ symptomLabels(entry.symptoms).join('、') }}
                   </span>
                   <span
                     v-else-if="entry.type === 'medication'"

@@ -30,6 +30,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
+import { symptomLabels } from '../data/symptoms.js';
 
 const router = useRouter();
 
@@ -69,7 +70,7 @@ function exportText() {
     for (const entry of entries) {
       const time = formatDateTime(entry.timestamp);
       if (entry.type === 'symptom') {
-        text += `${time} - ${entry.symptoms?.join('、') || ''}\n`;
+        text += `${time} - ${symptomLabels(entry.symptoms).join('、') || ''}\n`;
         if (entry.notes) text += `  备注：${entry.notes}\n`;
       } else if (entry.type === 'temperature') {
         text += `${time} - 体温：${entry.value}℃\n`;

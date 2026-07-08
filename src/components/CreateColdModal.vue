@@ -34,18 +34,23 @@
           初始症状（可选)
           <span class="text-gray-400 text-xs">{{ selectedSymptoms.length > 0 ? `已选 ${selectedSymptoms.length} 项` : '' }}</span>
         </label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="symptom in availableSymptoms"
-            :key="symptom"
-            @click="toggleSymptom(symptom)"
-            :class="['px-3 py-1.5 rounded-full text-sm border transition-all',
-              selectedSymptoms.includes(symptom)
-                ? 'bg-blue-100 border-blue-500 text-blue-700'
-                : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200']"
-          >
-            {{ symptom }}
-          </button>
+        <div class="max-h-44 overflow-y-auto pr-1">
+          <div v-for="group in symptomGroups" :key="group.name" class="mb-2">
+            <div class="text-xs text-gray-400 mb-1">{{ group.name }}</div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="symptom in group.symptoms"
+                :key="symptom.value"
+                @click="toggleSymptom(symptom.value)"
+                :class="['px-3 py-1.5 rounded-full text-sm border transition-all',
+                  selectedSymptoms.includes(symptom.value)
+                    ? 'bg-blue-100 border-blue-500 text-blue-700'
+                    : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200']"
+              >
+                {{ symptom.label }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -72,15 +77,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
+import { SYMPTOM_GROUPS } from '../data/symptoms.js';
 
 const router = useRouter();
 
 const emit = defineEmits(['close']);
 
-const availableSymptoms = [
-  '恶寒', '发热', '头痛', '鼻塞', '流涕',
-  '咽痛', '咳嗽', '乏力', '肌肉酸痛', '往来寒热'
-];
+const symptomGroups = SYMPTOM_GROUPS;
 
 const timeMode = ref('now');
 const customTime = ref('');
