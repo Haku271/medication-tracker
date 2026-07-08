@@ -53,6 +53,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
 import { getAllDrugs } from '../data/drugs.js';
+import { PARACETAMOL_LIMITS, parseTabletCount } from '../utils/paracetamol.js';
 
 const router = useRouter();
 const drugs = getAllDrugs();
@@ -98,21 +99,11 @@ const warning = computed(() => {
 });
 
 // 对乙酰氨基酚摄入量统计：当本次所选药品 + 当前感冒历史中已出现 ≥2 种含该成分的药品时显示
-// 单日安全上限参考 4000mg，单次不超过 1000mg
-const PARACETAMOL_DAILY_LIMIT = 4000;
-
-function parseTabletCount(doseStr) {
-  if (!doseStr) return 1;
-  const m = String(doseStr).match(/(\d+(\.\d+)?)/);
-  return m ? parseFloat(m[1]) : 1;
-}
-
 const paracetamolWarning = computed(() => {
   const activeCold = coldStore.getActiveCold();
   if (!activeCold) return '';
 
   const histMeds = activeCold.entries.filter(e => e.type === 'medication');
-  const histDrugs = new Set(histMeds.map(e => e.drug));
   const histMcg = histMeds
     .map(e => {
       const d = drugs.find(x => x.id === e.drug);
@@ -133,7 +124,8 @@ const paracetamolWarning = computed(() => {
   if (distinctParacetamolDrugs.size < 2) return '';
 
   const total = histMcg + selMcg;
-  return `检测到 ${distinctParacetamolDrugs.size} 种含对乙酰氨基酚药物同时使用，当前累计摄入约 ${total}mg（单日上限 ${PARACETAMOL_DAILY_LIMIT}mg）。请注意避免超量，以免肝损伤。`;
+  const selText = selMcg > 0 ? `（本次将再加 ${selMcg}mg）` : '';
+  return `检测到 ${distinctParacetamolDrugs.size} 种含对乙酰氨基酚药物同时使用，历史累计约 ${histMcg}mg${selText}，单日上限 ${PARACETAMOL_LIMITS.daily}mg。请注意避免超量，以免肝损伤。`;
 });
 
 function goBack() { router.back(); }

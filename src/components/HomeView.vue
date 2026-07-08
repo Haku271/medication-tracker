@@ -75,6 +75,41 @@
         </div>
       </div>
 
+      <!-- 对乙酰氨基酚摄入统计 -->
+      <div v-if="paracetamolSummary" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-amber-600 text-lg">⚠️</span>
+          <h3 class="font-bold text-gray-800">对乙酰氨基酚摄入统计</h3>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">检测到 {{ paracetamolSummary.distinctCount }} 种含对乙酰氨基酚药物同时使用</p>
+
+        <!-- 累计摄入条 -->
+        <div class="mb-3">
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-600">24小时累计</span>
+            <span :class="['font-medium', levelTextColor(dailyLevel)]">{{ paracetamolSummary.totalMg }} / 4000 mg</span>
+          </div>
+          <div class="h-3 rounded-full bg-gray-100 relative overflow-hidden">
+            <div :class="['h-full rounded-full transition-all', levelBg(dailyLevel)]" :style="{ width: dailyPercent + '%' }"></div>
+          </div>
+          <p v-if="dailyLevel === 'red'" class="text-red-600 text-xs mt-1">累计已超单日上限，请停止服用含对乙酰氨基酚药物</p>
+        </div>
+
+        <!-- 最近一次条 -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-600">最近一次剂量</span>
+            <span :class="['font-medium', levelTextColor(singleLevel)]">{{ paracetamolSummary.lastDoseMg }} / 1000 mg</span>
+          </div>
+          <div class="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div :class="['h-full rounded-full transition-all', levelBg(singleLevel)]" :style="{ width: singlePercent + '%' }"></div>
+          </div>
+          <p v-if="singleLevel === 'red'" class="text-red-600 text-xs mt-1">单次剂量已超上限，存在肝损伤风险</p>
+          <p v-else-if="singleLevel === 'amber'" class="text-amber-600 text-xs mt-1">单次剂量偏高，建议留意</p>
+        </div>
+      </div>
+
+
       <!-- 最新记录 -->
       <EntryList :entries="entries" />
     </div>
@@ -126,11 +161,15 @@ import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
 import { useDiagnosis } from '../composables/useDiagnosis.js';
 import { useDrugStatus } from '../composables/useDrugStatus.js';
+import { getAllDrugs } from '../data/drugs.js';
+import { summarize, levelFor, PARACETAMOL_LIMITS } from '../utils/paracetamol.js';
 import CreateColdModal from './CreateColdModal.vue';
 import HistoryView from './HistoryView.vue';
 import EntryList from './EntryList.vue';
 
 const router = useRouter();
+const allDrugs = getAllDrugs();
+
 const showCreateModal = ref(false);
 const showActionMenu = ref(false);
 const showAllEntries = ref(false);
@@ -152,6 +191,26 @@ const { currentDiagnosis } = useDiagnosis(activeCold.value?.entries || []);
 // 药品状态
 const { drugStatuses } = useDrugStatus(activeCold);
 const drugStatus = computed(() => drugStatuses.value || {});
+
+// 对乙酰氨基酚摄入统计：当历史出现 ≥2 种含该成分的药品时显示
+const paracetamolSummary = computed(() => {
+  const cold = activeCold.value;
+  if (!cold) return null;
+  const s = summarize(cold.entries, allDrugs);
+  return s.distinctCount < 2 ? null : s;
+});
+
+const dailyLevel = computed(() => paracetamolSummary.value ? levelFor(paracetamolSummary.value.totalMg, 'daily') : 'green');
+const singleLevel = computed(() => paracetamolSummary.value ? levelFor(paracetamolSummary.value.lastDoseMg, 'single') : 'green');
+const dailyPercent = computed(() => paracetamolSummary.value ? Math.min(100, paracetamolSummary.value.totalMg / PARACETAMOL_LIMITS.daily * 100) : 0);
+const singlePercent = computed(() => paracetamolSummary.value ? Math.min(100, paracetamolSummary.value.lastDoseMg / PARACETAMOL_LIMITS.single * 100) : 0);
+
+function levelBg(level) {
+  return level === 'red' ? 'bg-red-500' : level === 'amber' ? 'bg-amber-500' : 'bg-green-500';
+}
+function levelTextColor(level) {
+  return level === 'red' ? 'text-red-600' : level === 'amber' ? 'text-amber-600' : 'text-green-600';
+}
 
 // 记录
 const entries = computed(() => {
