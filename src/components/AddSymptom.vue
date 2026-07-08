@@ -89,6 +89,14 @@ import { SYMPTOM_GROUPS, symptomLabel } from '../data/symptoms.js';
 const router = useRouter();
 const symptomGroups = SYMPTOM_GROUPS;
 
+// 体温分档：value 为代表数值℃，label 为白话描述
+const temperatureOptions = [
+  { value: '36.5', label: '正常（≤37.2℃）' },
+  { value: '37.5', label: '低烧（38℃以内）' },
+  { value: '38.5', label: '中烧（38.1—39℃）' },
+  { value: '39.5', label: '高烧（>39℃）' }
+];
+
 const selectedSymptoms = ref([]);
 const temperature = ref('');
 const timeMode = ref('now');
