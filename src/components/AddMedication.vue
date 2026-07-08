@@ -8,11 +8,22 @@
     <div class="p-4 space-y-4">
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <label class="block text-sm font-medium text-gray-700 mb-3">选择药品</label>
-        <div class="space-y-2">
+        <div v-if="drugs.length === 0" class="text-gray-400 text-sm text-center py-4">
+          暂无可选药品，请到药品管理开启
+        </div>
+        <div v-else class="space-y-2">
           <button v-for="drug in drugs" :key="drug.id" @click="selectedDrug = drug"
-            :class="['w-full p-3 rounded-lg border-2 text-left', selectedDrug?.id === drug.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200']">
-            <div class="font-medium">{{ drug.name }}</div>
-            <div class="text-sm text-gray-500 mt-1">间隔: {{ drug.minIntervalHours }}小时</div>
+            :class="['w-full p-3 pl-4 rounded-lg border-2 text-left flex items-stretch gap-3', selectedDrug?.id === drug.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200']">
+            <div :class="['w-1.5 rounded-full shrink-0', formTag(drug.formType).bar]"></div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">{{ drug.name }}</span>
+                <span :class="['shrink-0 px-2 py-0.5 rounded text-xs font-bold', formTag(drug.formType).tag]">
+                  {{ formTag(drug.formType).label }}
+                </span>
+              </div>
+              <div class="text-sm text-gray-500 mt-1">间隔: {{ drug.minIntervalHours }}小时</div>
+            </div>
           </button>
         </div>
       </div>
@@ -52,11 +63,12 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
-import { getAllDrugs } from '../data/drugs.js';
+import { getAllDrugs, getVisibleDrugs, formTag } from '../data/drugs.js';
 import { PARACETAMOL_LIMITS, parseTabletCount } from '../utils/paracetamol.js';
 
 const router = useRouter();
-const drugs = getAllDrugs();
+const drugs = getVisibleDrugs();
+const allDrugs = getAllDrugs();
 
 const selectedDrug = ref(null);
 const dose = ref('');
@@ -106,7 +118,7 @@ const paracetamolWarning = computed(() => {
   const histMeds = activeCold.entries.filter(e => e.type === 'medication');
   const histMcg = histMeds
     .map(e => {
-      const d = drugs.find(x => x.id === e.drug);
+      const d = allDrugs.find(x => x.id === e.drug);
       return d && d.paracetamolPerTablet ? d.paracetamolPerTablet * parseTabletCount(e.dose) : 0;
     })
     .reduce((a, b) => a + b, 0);
@@ -116,7 +128,7 @@ const paracetamolWarning = computed(() => {
 
   const distinctParacetamolDrugs = new Set();
   histMeds.forEach(e => {
-    const d = drugs.find(x => x.id === e.drug);
+    const d = allDrugs.find(x => x.id === e.drug);
     if (d && d.paracetamolPerTablet) distinctParacetamolDrugs.add(e.drug);
   });
   if (sel && sel.paracetamolPerTablet) distinctParacetamolDrugs.add(sel.id);

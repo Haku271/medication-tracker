@@ -18,6 +18,12 @@
               历史记录
             </button>
             <button
+              @click="router.push('/drug-management')"
+              class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+            >
+              药品管理
+            </button>
+            <button
               @click="endCurrentCold"
               class="text-sm text-red-500 hover:text-red-700 font-medium"
             >
