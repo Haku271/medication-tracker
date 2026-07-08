@@ -30,7 +30,13 @@
 
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <label class="block text-sm font-medium text-gray-700 mb-2">剂量</label>
-        <input v-model="dose" type="text" :placeholder="selectedDrug ? selectedDrug.defaultDose : '1片'" class="w-full p-2 border border-gray-300 rounded-lg">
+        <div v-if="selectedDrug" class="flex gap-2">
+          <button v-for="n in [1, 2]" :key="n" @click="dose = `${n}片`"
+            :class="['flex-1 py-2 rounded-lg border-2 font-medium', dose === `${n}片` ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-700']">
+            {{ n }}片
+          </button>
+        </div>
+        <p v-else class="text-sm text-gray-400">请先选择药品</p>
       </div>
 
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -60,7 +66,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
 import { getAllDrugs, getVisibleDrugs, formTag } from '../data/drugs.js';
@@ -74,6 +80,10 @@ const selectedDrug = ref(null);
 const dose = ref('');
 const timeMode = ref('now');
 const customTime = ref('');
+
+watch(selectedDrug, (drug) => {
+  dose.value = drug ? '1片' : '';
+});
 
 function toLocalInputValue(date) {
   const d = new Date(date);
