@@ -35,6 +35,14 @@
         <p class="text-red-700 text-sm">{{ warning }}</p>
       </div>
 
+      <div v-if="paracetamolWarning" class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-amber-600">⚠️</span>
+          <h3 class="font-bold text-amber-900 text-sm">对乙酰氨基酚摄入统计</h3>
+        </div>
+        <p class="text-amber-800 text-sm">{{ paracetamolWarning }}</p>
+      </div>
+
       <button @click="submit" :disabled="!selectedDrug" class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium disabled:opacity-50">确认添加</button>
     </div>
   </div>
@@ -54,6 +62,21 @@ const dose = ref('');
 const timeMode = ref('now');
 const customTime = ref('');
 
+function toLocalInputValue(date) {
+  const d = new Date(date);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const coldStartTime = (() => {
+  const activeCold = coldStore.getActiveCold();
+  return activeCold ? activeCold.start_time : null;
+})();
+
+if (coldStartTime) {
+  customTime.value = toLocalInputValue(coldStartTime);
+}
+
 const warning = computed(() => {
   if (!selectedDrug.value) return '';
   const activeCold = coldStore.getActiveCold();
@@ -63,7 +86,8 @@ const warning = computed(() => {
   if (medEntries.length === 0) return '';
 
   const lastDose = medEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-  const hoursSince = (new Date() - new Date(lastDose.timestamp)) / (1000 * 60 * 60);
+  const refTime = timeMode.value === 'custom' && customTime.value ? new Date(customTime.value) : new Date();
+  const hoursSince = (refTime - new Date(lastDose.timestamp)) / (1000 * 60 * 60);
   const minInterval = selectedDrug.value.minIntervalHours;
 
   if (hoursSince < minInterval) {
@@ -73,6 +97,45 @@ const warning = computed(() => {
   return '';
 });
 
+// 对乙酰氨基酚摄入量统计：当本次所选药品 + 当前感冒历史中已出现 ≥2 种含该成分的药品时显示
+// 单日安全上限参考 4000mg，单次不超过 1000mg
+const PARACETAMOL_DAILY_LIMIT = 4000;
+
+function parseTabletCount(doseStr) {
+  if (!doseStr) return 1;
+  const m = String(doseStr).match(/(\d+(\.\d+)?)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
+const paracetamolWarning = computed(() => {
+  const activeCold = coldStore.getActiveCold();
+  if (!activeCold) return '';
+
+  const histMeds = activeCold.entries.filter(e => e.type === 'medication');
+  const histDrugs = new Set(histMeds.map(e => e.drug));
+  const histMcg = histMeds
+    .map(e => {
+      const d = drugs.find(x => x.id === e.drug);
+      return d && d.paracetamolPerTablet ? d.paracetamolPerTablet * parseTabletCount(e.dose) : 0;
+    })
+    .reduce((a, b) => a + b, 0);
+
+  const sel = selectedDrug.value;
+  const selMcg = sel && sel.paracetamolPerTablet ? sel.paracetamolPerTablet * parseTabletCount(dose.value || sel.defaultDose) : 0;
+
+  const distinctParacetamolDrugs = new Set();
+  histMeds.forEach(e => {
+    const d = drugs.find(x => x.id === e.drug);
+    if (d && d.paracetamolPerTablet) distinctParacetamolDrugs.add(e.drug);
+  });
+  if (sel && sel.paracetamolPerTablet) distinctParacetamolDrugs.add(sel.id);
+
+  if (distinctParacetamolDrugs.size < 2) return '';
+
+  const total = histMcg + selMcg;
+  return `检测到 ${distinctParacetamolDrugs.size} 种含对乙酰氨基酚药物同时使用，当前累计摄入约 ${total}mg（单日上限 ${PARACETAMOL_DAILY_LIMIT}mg）。请注意避免超量，以免肝损伤。`;
+});
+
 function goBack() { router.back(); }
 
 function submit() {
@@ -80,7 +143,7 @@ function submit() {
   const activeCold = coldStore.getActiveCold();
   if (!activeCold) { alert('没有进行中的感冒'); return; }
 
-  const timestamp = timeMode.value === 'custom' && customTime.value ? new Date(customTime.value).toISOString() : new Date().toISOString();
+  const timestamp = timeMode.value === 'custom' && customTime.value ? new Date(customTime.value).toISOString() : (coldStartTime || new Date().toISOString());
 
   coldStore.addEntry(activeCold.id, {
     timestamp,

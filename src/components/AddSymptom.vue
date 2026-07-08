@@ -72,11 +72,26 @@ function toggleSymptom(symptom) {
 
 function goBack() { router.back(); }
 
+function toLocalInputValue(date) {
+  const d = new Date(date);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const coldStartTime = (() => {
+  const activeCold = coldStore.getActiveCold();
+  return activeCold ? activeCold.start_time : null;
+})();
+
+if (coldStartTime) {
+  customTime.value = toLocalInputValue(coldStartTime);
+}
+
 function submit() {
   const activeCold = coldStore.getActiveCold();
   if (!activeCold) { alert('没有进行中的感冒'); return; }
 
-  const timestamp = timeMode.value === 'custom' && customTime.value ? new Date(customTime.value).toISOString() : new Date().toISOString();
+  const timestamp = timeMode.value === 'custom' && customTime.value ? new Date(customTime.value).toISOString() : (coldStartTime || new Date().toISOString());
 
   if (selectedSymptoms.value.length > 0) {
     coldStore.addEntry(activeCold.id, { timestamp, type: 'symptom', symptoms: [...selectedSymptoms.value], notes: notes.value });

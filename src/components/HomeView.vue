@@ -10,12 +10,20 @@
               {{ formatDate(activeCold.start_time) }} 开始 · 第 {{ daysElapsed }} 天
             </p>
           </div>
-          <button
-            @click="endCurrentCold"
-            class="text-sm text-red-500 hover:text-red-700 font-medium"
-          >
-            结束感冒
-          </button>
+          <div class="flex items-center gap-3">
+            <button
+              @click="router.push('/history')"
+              class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+            >
+              历史记录
+            </button>
+            <button
+              @click="endCurrentCold"
+              class="text-sm text-red-500 hover:text-red-700 font-medium"
+            >
+              结束感冒
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -60,7 +68,7 @@
               {{
                 status.status === 'active' ? '生效中' :
                 status.status === 'pending' ? '待生效' :
-                status.status === 'interval' ? '间隔期' : '可服用'
+                status.status === 'interval' ? '间隔期' : '可再次服用'
               }}
             </span>
           </div>
@@ -68,33 +76,7 @@
       </div>
 
       <!-- 最新记录 -->
-      <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div class="p-3 border-b border-gray-100 flex justify-between items-center">
-          <h3 class="font-bold text-gray-800">📋 最新记录</h3>
-          <button @click="showAllEntries = !showAllEntries" class="text-sm text-blue-600">
-            {{ showAllEntries ? '收起' : '查看全部' }}
-          </button>
-        </div>
-        <div class="divide-y divide-gray-50">
-          <div v-for="entry in visibleEntries" :key="entry.id" class="p-3">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xs font-mono text-gray-400">{{ formatTime(entry.timestamp) }}</span>
-                <p class="text-sm text-gray-700 mt-0.5">
-                  <span v-if="entry.type === 'symptom'">🩺 症状：{{ entry.symptoms?.join('、') }}</span>
-                  <span v-else-if="entry.type === 'medication'">💊 服药：{{ entry.drug }} {{ entry.dose }}</span>
-                  <span v-else-if="entry.type === 'temperature'">🌡️ 体温：{{ entry.value }}℃</span>
-                  <span v-else-if="entry.type === 'note'">📝 备注：{{ entry.content }}</span>
-                </p>
-                <p v-if="entry.notes" class="text-xs text-gray-400 mt-1">{{ entry.notes }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="entries.length === 0" class="p-4 text-gray-400 text-sm text-center">
-          暂无记录，点击下方 + 添加
-        </div>
-      </div>
+      <EntryList :entries="entries" />
     </div>
 
     <!-- 悬浮按钮 -->
@@ -146,13 +128,12 @@ import { useDiagnosis } from '../composables/useDiagnosis.js';
 import { useDrugStatus } from '../composables/useDrugStatus.js';
 import CreateColdModal from './CreateColdModal.vue';
 import HistoryView from './HistoryView.vue';
+import EntryList from './EntryList.vue';
 
 const router = useRouter();
 const showCreateModal = ref(false);
 const showActionMenu = ref(false);
 const showAllEntries = ref(false);
-
-// 自动结束检查
 coldStore.checkAutoEnd();
 
 const activeCold = computed(() => coldStore.getActiveCold());
