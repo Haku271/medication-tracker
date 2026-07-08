@@ -44,6 +44,11 @@ export const coldStore = reactive({
     );
   },
 
+  // 按 ID 获取感冒记录
+  getColdById(id) {
+    return this.colds.find(c => c.id === id) || null;
+  },
+
   // 创建新感冒
   createCold({ startTime, initialSymptoms = [] }) {
     const existingActive = this.getActiveCold();

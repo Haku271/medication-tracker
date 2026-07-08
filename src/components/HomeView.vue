@@ -1,46 +1,59 @@
 <template>
   <div class="min-h-screen bg-gray-50 pb-20">
-    <!-- 顶部：当前感冒状态 -->
-    <div v-if="activeCold" class="bg-white shadow-sm border-b border-gray-100">
+    <!-- 顶部：感冒状态 -->
+    <div v-if="displayCold" class="bg-white shadow-sm border-b border-gray-100">
       <div class="p-4">
         <div class="flex justify-between items-start">
           <div>
-            <h1 class="text-xl font-bold text-gray-900">感冒详情</h1>
+            <h1 class="text-xl font-bold text-gray-900">
+              {{ isViewingHistory ? '历史感冒详情' : '感冒详情' }}
+            </h1>
             <p class="text-sm text-gray-500 mt-1">
-              {{ formatDate(activeCold.start_time) }} 开始 · 第 {{ daysElapsed }} 天
+              {{ formatDate(displayCold.start_time) }} 开始
+              <span v-if="isViewingHistory"> ~ {{ formatDate(displayCold.end_time) }} 结束</span>
+              <span v-else> · 第 {{ daysElapsed }} 天</span>
             </p>
           </div>
           <div class="flex items-center gap-3">
             <button
-              @click="router.push('/history')"
+              v-if="isViewingHistory"
+              @click="router.push('/')"
               class="text-sm text-blue-500 hover:text-blue-700 font-medium"
             >
-              历史记录
+              返回
             </button>
-            <button
-              @click="router.push('/drug-management')"
-              class="text-sm text-blue-500 hover:text-blue-700 font-medium"
-            >
-              药品管理
-            </button>
-            <button
-              @click="endCurrentCold"
-              class="text-sm text-red-500 hover:text-red-700 font-medium"
-            >
-              结束感冒
-            </button>
+            <template v-else>
+              <button
+                @click="router.push('/history')"
+                class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+              >
+                历史记录
+              </button>
+              <button
+                @click="router.push('/drug-management')"
+                class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+              >
+                药品管理
+              </button>
+              <button
+                @click="endCurrentCold"
+                class="text-sm text-red-500 hover:text-red-700 font-medium"
+              >
+                结束感冒
+              </button>
+            </template>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 无感冒：显示历史 -->
-    <div v-else class="p-4">
+    <!-- 无感冒且未在查看历史：显示历史列表 -->
+    <div v-if="!displayCold" class="p-4">
       <HistoryView />
     </div>
 
     <!-- 感冒详情内容 -->
-    <div v-if="activeCold" class="p-4 space-y-4">
+    <div v-if="displayCold" class="p-4 space-y-4">
       <!-- 当前推断 -->
       <div v-if="currentDiagnosis" class="bg-amber-50 border border-amber-200 rounded-xl p-4">
         <div class="flex items-center gap-2 mb-2">
@@ -121,7 +134,7 @@
     </div>
 
     <!-- 悬浮按钮 -->
-    <div class="fixed bottom-6 right-6 z-40">
+    <div v-if="!isViewingHistory" class="fixed bottom-6 right-6 z-40">
       <button
         v-if="activeCold"
         @click="showActionMenu = true"
@@ -163,7 +176,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
 import { useDiagnosis } from '../composables/useDiagnosis.js';
 import { useDrugStatus } from '../composables/useDrugStatus.js';
@@ -174,6 +187,7 @@ import HistoryView from './HistoryView.vue';
 import EntryList from './EntryList.vue';
 
 const router = useRouter();
+const route = useRoute();
 const allDrugs = getAllDrugs();
 
 const showCreateModal = ref(false);
@@ -182,6 +196,15 @@ const showAllEntries = ref(false);
 coldStore.checkAutoEnd();
 
 const activeCold = computed(() => coldStore.getActiveCold());
+
+// 查看历史感冒：当 route.query.view 指定 id 时显示该记录
+const viewCold = computed(() => {
+  const id = route.query.view;
+  return id ? coldStore.getColdById(String(id)) : null;
+});
+
+const isViewingHistory = computed(() => !!viewCold.value);
+const displayCold = computed(() => viewCold.value || activeCold.value);
 
 // 计算天数
 const daysElapsed = computed(() => {
@@ -192,15 +215,15 @@ const daysElapsed = computed(() => {
 });
 
 // 诊断
-const { currentDiagnosis } = useDiagnosis(activeCold.value?.entries || []);
+const { currentDiagnosis } = useDiagnosis(displayCold.value?.entries || []);
 
 // 药品状态
-const { drugStatuses } = useDrugStatus(activeCold);
+const { drugStatuses } = useDrugStatus(displayCold);
 const drugStatus = computed(() => drugStatuses.value || {});
 
 // 对乙酰氨基酚摄入统计：当历史出现 ≥2 种含该成分的药品时显示
 const paracetamolSummary = computed(() => {
-  const cold = activeCold.value;
+  const cold = displayCold.value;
   if (!cold) return null;
   const s = summarize(cold.entries, allDrugs);
   return s.distinctCount < 2 ? null : s;
@@ -220,7 +243,7 @@ function levelTextColor(level) {
 
 // 记录
 const entries = computed(() => {
-  const cold = activeCold.value;
+  const cold = displayCold.value;
   if (!cold) return [];
   return [...cold.entries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 });
