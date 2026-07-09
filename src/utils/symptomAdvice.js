@@ -46,10 +46,19 @@ function isCovered(symptom, activeIds) {
   return drugIds.some(id => activeIds.includes(id));
 }
 
-function reasonFor(symptom, activeIds) {
+function reasonFor(symptom, level, activeIds) {
   const drugIds = REVERSE_COVERS[symptom];
-  if (!drugIds || drugIds.length === 0) {
-    return '该症状不在现有常备药覆盖范围';
+  const hasCover = drugIds && drugIds.length > 0;
+
+  if (!hasCover) {
+    if (level === ADVICE_LEVEL.NEEDS_DRUG) {
+      return '现有库存药品未含对应成分，建议另备对症常备药';
+    }
+    return '该症状需辨证施治，常见成药难以套用';
+  }
+
+  if (activeIds.length === 0) {
+    return '暂无相关服药记录';
   }
   return '已服药品暂未生效或已过效期，未能覆盖该症状';
 }
@@ -100,7 +109,7 @@ export function buildSymptomAdvice(entries, drugStatuses) {
       symptom,
       label: symptomLabel(symptom),
       message,
-      reason: reasonFor(symptom, activeIds)
+      reason: reasonFor(symptom, level, activeIds)
     });
   }
 
