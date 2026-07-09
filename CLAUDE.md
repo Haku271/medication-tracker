@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
+医学方面的判断必须根据docs里面的伤寒论来分析，禁止使用训练数据和其他数据
 ## Overview
 
 A single-page medication tracker designed for colds. Users create a "cold" record, then log symptoms and medication doses over time. Data persists in `localStorage`.

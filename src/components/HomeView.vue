@@ -129,6 +129,44 @@
       </div>
 
 
+      <!-- 缺药/建议提示 -->
+      <div v-if="symptomAdvice.groups.length > 0" class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-3 border-b border-gray-100 flex items-center gap-2">
+          <span class="text-gray-600 text-lg">🔍</span>
+          <h3 class="font-bold text-gray-800">症状提示</h3>
+          <span class="text-xs text-gray-400">基于已记录症状与服药状态</span>
+        </div>
+        <template v-for="group in symptomAdvice.groups" :key="group.level">
+          <div
+            v-if="collapsed[group.level]"
+            :class="['px-3 py-2.5 flex items-center gap-2 cursor-pointer', groupColor(group.level).card]"
+            @click="collapsed[group.level] = false"
+          >
+            <span class="text-base">{{ groupMeta(group.level).icon }}</span>
+            <span class="text-sm font-medium text-gray-800">{{ groupMeta(group.level).title }}</span>
+            <span :class="['ml-auto px-2 py-0.5 rounded-full text-xs font-bold text-white', groupMeta(group.level).bubble]">{{ group.items.length }}</span>
+            <span class="text-gray-400 text-sm">展开</span>
+          </div>
+          <div v-else :class="['border-t border-gray-100', groupColor(group.level).card]">
+            <button class="w-full px-3 py-2.5 flex items-center gap-2" @click="collapsed[group.level] = true">
+              <span class="text-base">{{ groupMeta(group.level).icon }}</span>
+              <span class="text-sm font-bold text-gray-800">{{ groupMeta(group.level).title }}</span>
+              <span :class="['px-1.5 py-0.5 rounded text-xs font-bold text-white', groupMeta(group.level).bubble]">{{ group.items.length }}</span>
+              <span class="ml-auto text-gray-400 text-sm">收起</span>
+            </button>
+            <div class="px-3 pb-3 space-y-1.5">
+              <div v-for="item in group.items" :key="item.symptom" class="flex flex-col gap-0.5">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-sm font-medium text-gray-800">{{ item.label }}</span>
+                  <span :class="['text-sm font-medium', groupColor(group.level).text]">→ {{ item.message }}</span>
+                </div>
+                <span class="text-xs text-gray-400 pl-2">原因：{{ item.reason }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
       <!-- 最新记录 -->
       <EntryList :entries="entries" />
     </div>
@@ -182,6 +220,7 @@ import { useDiagnosis } from '../composables/useDiagnosis.js';
 import { useDrugStatus } from '../composables/useDrugStatus.js';
 import { getAllDrugs } from '../data/drugs.js';
 import { summarize, levelFor, PARACETAMOL_LIMITS } from '../utils/paracetamol.js';
+import { buildSymptomAdvice, GROUP_META } from '../utils/symptomAdvice.js';
 import CreateColdModal from './CreateColdModal.vue';
 import HistoryView from './HistoryView.vue';
 import EntryList from './EntryList.vue';
@@ -220,6 +259,16 @@ const { currentDiagnosis } = useDiagnosis(displayCold.value?.entries || []);
 // 药品状态
 const { drugStatuses } = useDrugStatus(displayCold);
 const drugStatus = computed(() => drugStatuses.value || {});
+
+// 缺药/建议提示
+const collapsed = ref({ seeDoctor: false, needsDrug: false, needsConsult: true, selfResolving: false });
+function groupMeta(level) { return GROUP_META[level]; }
+function groupColor(level) { return GROUP_META[level]; }
+const symptomAdvice = computed(() => {
+  const cold = displayCold.value;
+  if (!cold) return { groups: [] };
+  return buildSymptomAdvice(cold.entries, drugStatus.value);
+});
 
 // 对乙酰氨基酚摄入统计：当历史出现 ≥2 种含该成分的药品时显示
 const paracetamolSummary = computed(() => {

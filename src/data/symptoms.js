@@ -24,7 +24,10 @@ export const SYMPTOM_GROUPS = [
       { label: '嗓子痛（咽痛）', value: '咽痛' },
       { label: '嗓子干（咽干）', value: '咽干' },
       { label: '口苦', value: '口苦' },
-      { label: '口干口渴（口燥渴）', value: '口燥渴' }
+      { label: '口干口渴（口燥渴）', value: '口燥渴' },
+      { label: '鼻塞', value: '鼻塞' },
+      { label: '流鼻涕（流涕）', value: '流涕' },
+      { label: '打喷嚏', value: '喷嚏' }
     ]
   },
   {
