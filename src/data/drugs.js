@@ -2,6 +2,7 @@
 // paracetamolPerTablet: 每片(默认剂量)含对乙酰氨基酚毫克数；无则为 null
 // visible: 是否在添加服药页显示（默认 true，由 localStorage 覆盖）
 // formType: 剂型，用于卡片视觉区分。sr=缓释，normal=普通，compound=复方
+// category: 功效分类。antipyretic=退烧镇痛，expectorant=止咳化痰，antiasthmatic=平喘
 const drugs = [
   {
     id: 'paracetamol-chlorpheniramine',
@@ -12,6 +13,7 @@ const drugs = [
     defaultDose: '1片',
     paracetamolPerTablet: 250,
     formType: 'compound',
+    category: 'antipyretic',
     visible: true
   },
   {
@@ -23,6 +25,7 @@ const drugs = [
     defaultDose: '1片',
     paracetamolPerTablet: null,
     formType: 'sr',
+    category: 'antipyretic',
     visible: true
   },
   {
@@ -34,6 +37,7 @@ const drugs = [
     defaultDose: '1片',
     paracetamolPerTablet: 650,
     formType: 'sr',
+    category: 'antipyretic',
     visible: true
   },
   {
@@ -45,6 +49,7 @@ const drugs = [
     defaultDose: '1片',
     paracetamolPerTablet: null,
     formType: 'normal',
+    category: 'antipyretic',
     visible: true
   },
   {
@@ -56,6 +61,55 @@ const drugs = [
     defaultDose: '1片',
     paracetamolPerTablet: 500,
     formType: 'normal',
+    category: 'antipyretic',
+    visible: true
+  },
+  {
+    id: 'tongxuan-lifei-granule',
+    name: '通宣理肺颗粒',
+    onsetMinutes: 30,
+    durationHours: 6,
+    minIntervalHours: 4,
+    defaultDose: '1袋',
+    paracetamolPerTablet: null,
+    formType: 'normal',
+    category: 'expectorant',
+    visible: true
+  },
+  {
+    id: 'tongxuan-lifei-pill',
+    name: '通宣理肺丸',
+    onsetMinutes: 60,
+    durationHours: 8,
+    minIntervalHours: 8,
+    defaultDose: '1丸',
+    paracetamolPerTablet: null,
+    formType: 'normal',
+    category: 'expectorant',
+    visible: true
+  },
+  {
+    id: 'tongxuan-lifei-oral',
+    name: '通宣理肺口服液',
+    onsetMinutes: 30,
+    durationHours: 6,
+    minIntervalHours: 4,
+    defaultDose: '1支',
+    paracetamolPerTablet: null,
+    formType: 'normal',
+    category: 'expectorant',
+    visible: true
+  },
+  {
+    id: 'hanchuan-zupa',
+    name: '寒喘祖帕颗粒',
+    onsetMinutes: 30,
+    durationHours: 6,
+    minIntervalHours: 4,
+    defaultDose: '1袋',
+    paracetamolPerTablet: null,
+    formType: 'normal',
+    category: 'antiasthmatic',
     visible: true
   }
 ];
@@ -105,4 +159,35 @@ export function formTag(formType) {
     case 'compound': return { label: '复方', bar: 'bg-purple-500', tag: 'bg-purple-100 text-purple-700' };
     default: return { label: '普通', bar: 'bg-gray-400', tag: 'bg-gray-200 text-gray-700' };
   }
+}
+
+// 功效分类
+export const DRUG_CATEGORIES = [
+  { id: 'antipyretic', label: '退烧镇痛', tag: 'bg-red-100 text-red-700' },
+  { id: 'expectorant', label: '止咳化痰', tag: 'bg-emerald-100 text-emerald-700' },
+  { id: 'antiasthmatic', label: '平喘', tag: 'bg-amber-100 text-amber-700' }
+];
+
+export function categoryMeta(category) {
+  return DRUG_CATEGORIES.find(c => c.id === category);
+}
+
+// 按分类分组的可见药品
+export function getVisibleDrugsByCategory() {
+  return groupDrugsByCategory(getVisibleDrugs());
+}
+
+// 按分类分组的全部药品（含不可见）
+export function getAllDrugsByCategory() {
+  return groupDrugsByCategory([...drugs]);
+}
+
+function groupDrugsByCategory(list) {
+  const groups = DRUG_CATEGORIES.map(c => ({ ...c, drugs: [] }));
+  const byId = Object.fromEntries(groups.map(g => [g.id, g]));
+  list.forEach(d => {
+    const g = byId[d.category];
+    if (g) g.drugs.push({ ...d });
+  });
+  return groups.filter(g => g.drugs.length > 0);
 }

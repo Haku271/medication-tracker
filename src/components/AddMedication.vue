@@ -8,32 +8,39 @@
     <div class="p-4 space-y-4">
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <label class="block text-sm font-medium text-gray-700 mb-3">选择药品</label>
-        <div v-if="drugs.length === 0" class="text-gray-400 text-sm text-center py-4">
+        <div v-if="drugGroups.length === 0" class="text-gray-400 text-sm text-center py-4">
           暂无可选药品，请到药品管理开启
         </div>
-        <div v-else class="space-y-2">
-          <button v-for="drug in drugs" :key="drug.id" @click="selectedDrug = drug"
-            :class="['w-full p-3 pl-4 rounded-lg border-2 text-left flex items-stretch gap-3', selectedDrug?.id === drug.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200']">
-            <div :class="['w-1.5 rounded-full shrink-0', formTag(drug.formType).bar]"></div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-medium">{{ drug.name }}</span>
-                <span :class="['shrink-0 px-2 py-0.5 rounded text-xs font-bold', formTag(drug.formType).tag]">
-                  {{ formTag(drug.formType).label }}
-                </span>
-              </div>
-              <div class="text-sm text-gray-500 mt-1">间隔: {{ drug.minIntervalHours }}小时</div>
+        <div v-else class="space-y-4">
+          <div v-for="group in drugGroups" :key="group.id">
+            <div class="flex items-center gap-2 mb-2">
+              <span :class="['px-2 py-0.5 rounded text-xs font-bold', group.tag]">{{ group.label }}</span>
             </div>
-          </button>
+            <div class="space-y-2">
+              <button v-for="drug in group.drugs" :key="drug.id" @click="selectedDrug = drug"
+                :class="['w-full p-3 pl-4 rounded-lg border-2 text-left flex items-stretch gap-3', selectedDrug?.id === drug.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200']">
+                <div :class="['w-1.5 rounded-full shrink-0', formTag(drug.formType).bar]"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ drug.name }}</span>
+                    <span :class="['shrink-0 px-2 py-0.5 rounded text-xs font-bold', formTag(drug.formType).tag]">
+                      {{ formTag(drug.formType).label }}
+                    </span>
+                  </div>
+                  <div v-if="drug.category === 'antipyretic'" class="text-sm text-gray-500 mt-1">间隔: {{ drug.minIntervalHours }}小时</div>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <label class="block text-sm font-medium text-gray-700 mb-2">剂量</label>
         <div v-if="selectedDrug" class="flex gap-2">
-          <button v-for="n in [1, 2]" :key="n" @click="dose = `${n}片`"
-            :class="['flex-1 py-2 rounded-lg border-2 font-medium', dose === `${n}片` ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-700']">
-            {{ n }}片
+          <button v-for="opt in doseOptions" :key="opt" @click="dose = opt"
+            :class="['flex-1 py-2 rounded-lg border-2 font-medium', dose === opt ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-700']">
+            {{ opt }}
           </button>
         </div>
         <p v-else class="text-sm text-gray-400">请先选择药品</p>
@@ -69,20 +76,38 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { coldStore } from '../stores/coldStore.js';
-import { getAllDrugs, getVisibleDrugs, formTag } from '../data/drugs.js';
+import { getAllDrugs, getVisibleDrugsByCategory, formTag } from '../data/drugs.js';
 import { PARACETAMOL_LIMITS, parseTabletCount } from '../utils/paracetamol.js';
 
 const router = useRouter();
-const drugs = getVisibleDrugs();
+const drugGroups = getVisibleDrugsByCategory();
 const allDrugs = getAllDrugs();
+
+// 根据剂型生成剂量选项。片剂按 1片/2片，其余用 defaultDose 作主选项并附半量。
+const doseUnitMap = { '1片': ['1片', '2片'] };
+function doseOptionsFor(drug) {
+  if (!drug) return [];
+  if (doseUnitMap[drug.defaultDose]) return doseUnitMap[drug.defaultDose];
+  // 非片剂：提供 defaultDose 及倍数（2x）
+  const base = drug.defaultDose;
+  const numMatch = base.match(/^(\d+(?:\.\d+)?)/);
+  if (numMatch) {
+    const n = parseFloat(numMatch[1]);
+    const rest = base.slice(numMatch[0].length);
+    return [...new Set([base, `${n * 2}${rest}`])];
+  }
+  return [base];
+}
 
 const selectedDrug = ref(null);
 const dose = ref('');
 const timeMode = ref('now');
 const customTime = ref('');
 
+const doseOptions = computed(() => doseOptionsFor(selectedDrug.value));
+
 watch(selectedDrug, (drug) => {
-  dose.value = drug ? '1片' : '';
+  dose.value = drug ? drug.defaultDose : '';
 });
 
 function toLocalInputValue(date) {
