@@ -25,15 +25,17 @@
             <template v-else>
               <button
                 @click="router.push('/history')"
-                class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+                class="material-symbols-rounded text-gray-600 hover:text-gray-900"
+                title="历史记录"
               >
-                历史记录
+                history
               </button>
               <button
                 @click="router.push('/drug-management')"
-                class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+                class="material-symbols-rounded text-gray-600 hover:text-gray-900"
+                title="药品管理"
               >
-                药品管理
+                settings
               </button>
               <button
                 @click="endCurrentCold"
