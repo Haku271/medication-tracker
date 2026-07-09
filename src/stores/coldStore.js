@@ -106,13 +106,17 @@ export const coldStore = reactive({
   },
 
   // 导出数据
-  exportData() {
-    return {
-      schema_version: '1.0',
-      export_type: 'medication-tracker-backup',
-      export_time: new Date().toISOString(),
-      records: this.colds
-    };
+  // 删除单个感冒记录
+  deleteCold(coldId) {
+    this.colds = this.colds.filter(c => c.id !== coldId);
+    saveToStorage({ version: STORAGE_VERSION, colds: this.colds });
+  },
+
+  // 批量删除感冒记录
+  deleteColds(ids) {
+    const idSet = new Set(ids);
+    this.colds = this.colds.filter(c => !idSet.has(c.id));
+    saveToStorage({ version: STORAGE_VERSION, colds: this.colds });
   },
 
   // 导入数据
