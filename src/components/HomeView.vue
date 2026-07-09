@@ -39,9 +39,10 @@
               </button>
               <button
                 @click="endCurrentCold"
-                class="text-sm text-red-500 hover:text-red-700 font-medium"
+                class="material-symbols-rounded text-gray-600 hover:text-red-600"
+                title="结束感冒"
               >
-                结束感冒
+                power_settings_new
               </button>
             </template>
           </div>
