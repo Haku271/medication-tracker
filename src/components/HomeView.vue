@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pb-20">
+  <div class="min-h-[100dvh] bg-gray-50 pb-20">
     <!-- 顶部：感冒状态 -->
     <div v-if="displayCold" class="bg-white shadow-sm border-b border-gray-100">
       <div class="p-4">
@@ -183,7 +183,7 @@
     </div>
 
     <!-- 悬浮按钮 -->
-    <div v-if="!isViewingHistory" class="fixed bottom-6 right-6 z-40">
+    <div v-if="!isViewingHistory" class="fixed right-6 z-40" style="bottom: max(1.5rem, env(safe-area-inset-bottom))">
       <button
         v-if="activeCold"
         @click="showActionMenu = true"
