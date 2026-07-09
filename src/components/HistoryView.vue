@@ -30,6 +30,12 @@
             全选
           </label>
           <span class="text-sm text-gray-500">已选 {{ selectedIds.length }} 项</span>
+          <button
+            @click="exitManage"
+            class="px-3 py-1 text-sm rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+          >
+            取消
+          </button>
         </div>
         <div class="flex gap-2">
           <button
@@ -90,15 +96,6 @@
             </span>
           </div>
         </div>
-      </div>
-
-      <div v-if="manageMode" class="flex gap-2 mt-3">
-        <button
-          @click="exitManage"
-          class="flex-1 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
-        >
-          取消
-        </button>
       </div>
     </div>
   </div>
