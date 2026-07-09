@@ -217,6 +217,28 @@
 
     <!-- 创建感冒模态框 -->
     <CreateColdModal v-if="showCreateModal" @close="showCreateModal = false" />
+
+    <!-- 结束感冒确认模态框 -->
+    <div v-if="showEndColdModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="cancelEndCold">
+      <div class="bg-white rounded-xl p-6 w-11/12 max-w-md mx-4 shadow-xl">
+        <h2 class="text-xl font-bold mb-2 text-gray-800">结束感冒</h2>
+        <p class="text-gray-600 mb-6">确定要结束这次感冒记录吗？结束后将无法再添加记录。</p>
+        <div class="flex gap-3">
+          <button
+            @click="cancelEndCold"
+            class="flex-1 py-3 px-4 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+          >
+            取消
+          </button>
+          <button
+            @click="confirmEndCold"
+            class="flex-1 py-3 px-4 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+          >
+            确认结束
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -238,6 +260,7 @@ const route = useRoute();
 const allDrugs = getAllDrugs();
 
 const showCreateModal = ref(false);
+const showEndColdModal = ref(false);
 const showActionMenu = ref(false);
 const showAllEntries = ref(false);
 coldStore.checkAutoEnd();
@@ -324,9 +347,17 @@ function formatTime(dateStr) {
 
 function endCurrentCold() {
   if (!activeCold.value) return;
-  if (confirm('确定要结束这次感冒记录吗？')) {
-    coldStore.endCold(activeCold.value.id);
-  }
+  showEndColdModal.value = true;
+}
+
+function cancelEndCold() {
+  showEndColdModal.value = false;
+}
+
+function confirmEndCold() {
+  if (!activeCold.value) return;
+  coldStore.endCold(activeCold.value.id);
+  showEndColdModal.value = false;
 }
 
 function navigateTo(path) {
