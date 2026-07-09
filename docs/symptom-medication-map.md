@@ -31,9 +31,6 @@
 | `ibuprofen` | 布洛芬片 | 发热、大热、潮热、寒战、头痛、头项强痛、身疼痛、肌肉酸痛、骨节疼痛、项背强、咽痛、咽干 |
 | `ibuprofen-sr` | 布洛芬缓释片 | （同上，缓释） |
 
-退烧成分集合（判定缺退烧药用）：
-`paracetamol`、`paracetamol-sr`、`paracetamol-chlorpheniramine`、`ibuprofen`、`ibuprofen-sr`
-
 ---
 
 ## 三、常备药范畴（needsDrug）— 按具体症状提示用药类型
@@ -110,7 +107,6 @@
 
 JSON 字段：
 - `drugCovers`：每个药品 id 覆盖的症状数组（用于判定已服药生效范围是否覆盖某症）。
-- `antipyreticDrugIds`：含退烧成分的药品 id（判定缺退烧药）。
 - `needsDrug`：常备药范畴，症状 → 用药类型（模糊，不点名具体药）。
 - `needsConsult`：非常备药症状数组，统一提示"需辨证就医"。
 - `selfResolving`：自愈随主解，症状 → 护理建议。

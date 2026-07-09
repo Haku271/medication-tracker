@@ -6,7 +6,6 @@
     "ibuprofen": ["发热","大热","潮热","寒战","头痛","头项强痛","身疼痛","肌肉酸痛","骨节疼痛","项背强","咽痛","咽干"],
     "ibuprofen-sr": ["发热","大热","潮热","寒战","头痛","头项强痛","身疼痛","肌肉酸痛","骨节疼痛","项背强","咽痛","咽干"]
   },
-  "antipyreticDrugIds": ["paracetamol","paracetamol-sr","paracetamol-chlorpheniramine","ibuprofen","ibuprofen-sr"],
   "needsDrug": {
     "发热": "退烧药",
     "大热": "退烧药",
