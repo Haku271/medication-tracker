@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-3">
       <h2 class="text-lg font-bold text-gray-800">历史感冒记录</h2>
       <button
         v-if="!manageMode && history.length > 0"
@@ -18,7 +18,7 @@
     <div v-else>
       <!-- 管理工具栏 -->
       <div v-if="manageMode" class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-2.5">
           <label class="flex items-center gap-2 text-sm text-gray-700">
             <input
               type="checkbox"
@@ -56,11 +56,11 @@
         </div>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-2.5">
         <div
           v-for="cold in history"
           :key="cold.id"
-          :class="['p-4 rounded-lg border transition-colors',
+          :class="['p-3.5 rounded-lg border transition-colors',
             manageMode
               ? (isSelected(cold.id) ? 'border-blue-400 bg-blue-50' : 'border-gray-100')
               : 'border-gray-100 hover:bg-gray-50 cursor-pointer']"
@@ -79,7 +79,7 @@
                 <p class="font-medium text-gray-800">
                   {{ formatDate(cold.start_time) }} ~ {{ cold.end_time ? formatDate(cold.end_time) : '进行中' }}
                 </p>
-                <p class="text-sm text-gray-500 mt-1">
+                <p class="text-sm text-gray-500 mt-0.5">
                   病程 {{ calculateDays(cold) }} 天
                 </p>
               </div>
@@ -92,7 +92,7 @@
         </div>
       </div>
 
-      <div v-if="manageMode" class="flex gap-2 mt-4">
+      <div v-if="manageMode" class="flex gap-2 mt-3">
         <button
           @click="exitManage"
           class="flex-1 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
