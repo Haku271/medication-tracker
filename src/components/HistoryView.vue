@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="p-4">
     <div class="flex justify-between items-center mb-3">
       <h2 class="text-lg font-bold text-gray-800">历史感冒记录</h2>
       <button
