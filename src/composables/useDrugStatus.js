@@ -41,6 +41,20 @@ export function calculateDrugStatus(drugId, medications, now = new Date()) {
   const lastDose = sorted[0];
   const lastTime = new Date(lastDose.timestamp);
 
+  // 非退烧类不追踪起效/持续/间隔状态，仅记录已服
+  if (drug.category !== 'antipyretic') {
+    return {
+      status: DRUG_STATUS.READY,
+      drugId,
+      drugName: drug.name,
+      message: '已服用',
+      trackStatus: false,
+      nextDoseTime: null,
+      timeRemaining: null,
+      lastDoseTime: lastDose.timestamp
+    };
+  }
+
   // 计算关键时间点
   const onsetTime = new Date(lastTime.getTime() + drug.onsetMinutes * 60 * 1000);
   const expireTime = new Date(lastTime.getTime() + drug.durationHours * 60 * 60 * 1000);

@@ -77,9 +77,17 @@
           <div v-for="status in drugStatus" :key="status.drugId" class="p-3 flex items-center justify-between">
             <div>
               <p class="font-medium text-gray-800">{{ status.drugName }}</p>
-              <p class="text-sm text-gray-500">{{ status.message }}</p>
+              <p class="text-sm text-gray-500">
+                <span v-if="status.trackStatus === false && status.lastDoseTime">{{ formatTime(status.lastDoseTime) }} 服药</span>
+                <span v-else-if="status.trackStatus === false">已服用</span>
+                <span v-else>{{ status.message }}</span>
+                <span v-if="status.trackStatus !== false && status.lastDoseTime" class="text-gray-400 ml-1">· {{ formatTime(status.lastDoseTime) }} 服药</span>
+              </p>
             </div>
-            <span :class="['px-2 py-1 rounded-full text-xs font-medium',
+            <span v-if="status.trackStatus === false" class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+              已服用
+            </span>
+            <span v-else :class="['px-2 py-1 rounded-full text-xs font-medium',
               status.status === 'active' ? 'bg-green-100 text-green-700' :
               status.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
               status.status === 'interval' ? 'bg-orange-100 text-orange-700' :

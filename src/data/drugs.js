@@ -1,7 +1,7 @@
 // 药品数据结构
 // paracetamolPerTablet: 每片(默认剂量)含对乙酰氨基酚毫克数；无则为 null
 // visible: 是否在添加服药页显示（默认 true，由 localStorage 覆盖）
-// formType: 剂型，用于卡片视觉区分。sr=缓释，normal=普通，compound=复方
+// formType: 剂型，用于卡片视觉区分。sr=缓释，compound=复方，granule=颗粒，pill=丸剂，liquid=口服液，normal=普通
 // category: 功效分类。antipyretic=退烧镇痛，expectorant=止咳化痰，antiasthmatic=平喘
 const drugs = [
   {
@@ -72,7 +72,7 @@ const drugs = [
     minIntervalHours: 4,
     defaultDose: '1袋',
     paracetamolPerTablet: null,
-    formType: 'normal',
+    formType: 'granule',
     category: 'expectorant',
     visible: true
   },
@@ -83,6 +83,18 @@ const drugs = [
     durationHours: 8,
     minIntervalHours: 8,
     defaultDose: '1丸',
+    paracetamolPerTablet: null,
+    formType: 'pill',
+    category: 'expectorant',
+    visible: true
+  },
+  {
+    id: 'tongxuan-lifei-tablet',
+    name: '通宣理肺片',
+    onsetMinutes: 0,
+    durationHours: 0,
+    minIntervalHours: 0,
+    defaultDose: '1片',
     paracetamolPerTablet: null,
     formType: 'normal',
     category: 'expectorant',
@@ -96,7 +108,7 @@ const drugs = [
     minIntervalHours: 4,
     defaultDose: '1支',
     paracetamolPerTablet: null,
-    formType: 'normal',
+    formType: 'liquid',
     category: 'expectorant',
     visible: true
   },
@@ -157,6 +169,9 @@ export function formTag(formType) {
   switch (formType) {
     case 'sr': return { label: '缓释', bar: 'bg-blue-500', tag: 'bg-blue-100 text-blue-700' };
     case 'compound': return { label: '复方', bar: 'bg-purple-500', tag: 'bg-purple-100 text-purple-700' };
+    case 'granule': return { label: '颗粒', bar: 'bg-emerald-500', tag: 'bg-emerald-100 text-emerald-700' };
+    case 'pill': return { label: '丸剂', bar: 'bg-amber-500', tag: 'bg-amber-100 text-amber-700' };
+    case 'liquid': return { label: '口服液', bar: 'bg-sky-500', tag: 'bg-sky-100 text-sky-700' };
     default: return { label: '普通', bar: 'bg-gray-400', tag: 'bg-gray-200 text-gray-700' };
   }
 }
