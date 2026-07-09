@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+  <div>
     <h2 class="text-lg font-bold text-gray-800 mb-4">历史感冒记录</h2>
 
     <div v-if="history.length === 0" class="text-center py-8 text-gray-500">
